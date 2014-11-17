@@ -17,5 +17,11 @@ public class RubikTests {
 	   cube.doMoves("F3,F,B3,B,U3,U,D3,D,L3,L,R3,R");
 	   assertTrue("Triples plus single:",cube.isSolved());
 	}
+	
+	@Test
+	public void sequenceTest(){
+		String sequence = Cube.generateMoveSequence(5);
+		assertTrue("There are 5 move:",sequence.split(",").length == 5);
+	}
 
 }

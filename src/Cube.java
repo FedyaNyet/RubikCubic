@@ -21,6 +21,7 @@ import java.util.ArrayList;
 		  	|_|_|_|
  
 */
+import java.util.Random;
 	  
 public class Cube {
 	
@@ -51,7 +52,7 @@ public class Cube {
 		return copiedFace;
 	}
 	
-	private String shortStringForFace(int faceIndex){
+	private String stringForFace(int faceIndex){
 		String ret = "";
 		char color = FACE_ORDER.charAt(faceIndex);
 		int[][] face = faces.get(faceIndex);
@@ -71,7 +72,7 @@ public class Cube {
 		return ret;
 	}
 
-	private String longStringForFace(int rowIndex){
+	private String stringForRow(int rowIndex){
 		String ret = "";
 		String new_line = "|%d|%d|%d|%d|%d|%d|%d|%d|%d|";
 		Object[] args = new Object[] {
@@ -238,41 +239,59 @@ public class Cube {
 	   }
 	}
 	
+	public String toString(){
+		String ret = "";
+		ret += "       - - -"+"\n";
+		ret += stringForFace(5);
+		ret += " - - - - - - - - - \n";
+		for(int a=0;a<3;a++){
+			ret += stringForRow(a);
+		}
+		ret += " - - - - - - - - - \n";
+		ret += stringForFace(3);
+		ret += "       - - -"+"\n";
+		ret += stringForFace(4);
+		ret += "       - - -"+"\n";
+		return ret;
+	}	
+	
 	public Boolean isSolved(){
+		return this.score() == 0;
+	}
+	
+	public int score(){
+		int score = 0;
 		for(char color: FACE_ORDER.toCharArray()){
 			int face_index = FACE_ORDER.indexOf(color);
 			int[][] face = faces.get(face_index);
 			for(int row=0; row<3; row++){
 				for(int column=0; column<3; column++){
 					if( face[column][row] != face_index){
-						System.out.println(this);
-						return false;
+						score--;
 					}
 				}
 			}
 		}
-		return true;
+		return score;
 	}
 	
-	public String toString(){
-		String ret = "";
-		ret += "       - - -"+"\n";
-		ret += shortStringForFace(5);
-		ret += " - - - - - - - - - \n";
-		for(int a=0;a<3;a++){
-			ret += longStringForFace(a);
+	public static String generateMoveSequence(int length){
+		String sequence = "";
+		for(int a = 0; a<length; a++){
+			Random rand = new Random();
+			int rotations = rand.nextInt(3)+1;
+			int faceIndex = rand.nextInt(FACE_ORDER.length());
+			sequence += FACE_ORDER.charAt(faceIndex) + "" + rotations +",";
 		}
-		ret += " - - - - - - - - - \n";
-		ret += shortStringForFace(3);
-		ret += "       - - -"+"\n";
-		ret += shortStringForFace(4);
-		ret += "       - - -"+"\n";
-		return ret;
+		return sequence.substring(0, sequence.length()-1);
 	}
 	
 	public static void main(String[] args){
 		Cube cube = new Cube();
-		cube.doMove("F");
+		String sequence = Cube.generateMoveSequence(20);
+		System.out.println("preforming: "+sequence);
+		cube.doMoves(sequence);
 		System.out.println(cube);
+		System.out.println("score: "+cube.score());
 	}
 }
