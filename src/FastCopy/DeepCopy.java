@@ -16,6 +16,16 @@ import java.io.ObjectInputStream;
  * @see http://javatechniques.com/blog/faster-deep-copies-of-java-objects/
  */
 public class DeepCopy {
+	
+	public static int[][] copy(int[][] obj){ 
+		int[][] cpy = new int[obj.length][obj[0].length];
+		for(int a=0; a<obj.length; a++){
+			for(int b=0; b<obj[a].length; b++){
+				cpy[a][b] = obj[a][b];
+			}
+		}
+		return cpy;
+	}
 
     /**
      * Returns a copy of the object, or null if the object cannot
