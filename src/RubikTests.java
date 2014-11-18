@@ -23,5 +23,14 @@ public class RubikTests {
 		String sequence = Cube.generateMoveSequence(5);
 		assertTrue("There are 5 move:",sequence.split(",").length == 5);
 	}
+	
+	@Test
+	public void nonTrivialMoveSolutionTest(){
+		Cube cube = new Cube();
+		cube.doMoves("R,D2,F");
+		assertTrue("Cube is scrambled:", !cube.isSolved());
+		cube.doMoves("F3,D2,R3");
+		assertTrue("Simple non sequencial problem solved:", cube.isSolved());
+	}
 
 }
