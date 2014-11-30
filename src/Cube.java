@@ -56,10 +56,9 @@ public class Cube {
 		String ret = "";
 		char color = FACE_ORDER.charAt(faceIndex);
 		int[][] face = faces.get(faceIndex);
-		Boolean short_line = (color == 'U' || color == 'D' || color == 'B' );
 		String new_line = null;
 		Object[] args =  null;
-		if(short_line){
+		if(color == 'U' || color == 'D' || color == 'B' ){
 			new_line = "      |%d|%d|%d|         ";
 			args = new Object[] {0, 0, 0};
 			for(int row=0; row<3; row++){
@@ -92,17 +91,17 @@ public class Cube {
 	 */
 	public void rotateFace(int faceIndex){
 		int[][] face = faces.get(faceIndex);
-		int[][] origFace = faces.get(faceIndex).clone();
+		int[][] origFace = face.clone();
 //			  | [0][0] | [0][1] | [0][2] |	   | [2][0] | [1][0] | [0][0] |
 //			  | [1][0] | [1][1] | [1][2] | --> | [2][1] | [1][1] | [0][1] |
 //			  | [2][0] | [2][1] | [2][2] | 	   | [2][2] | [1][2] | [0][2] |
 		face[0][0] = origFace[2][0];
-		face[1][0] = origFace[2][1];
-		face[2][0] = origFace[2][2];
 		face[0][1] = origFace[1][0];
-		face[2][1] = origFace[1][2];
 		face[0][2] = origFace[0][0];
+		face[1][0] = origFace[2][1];
 		face[1][2] = origFace[0][1];
+		face[2][0] = origFace[2][2];
+		face[2][1] = origFace[1][2];
 		face[2][2] = origFace[0][2];
 		
 		//Rotate the adjacent face's edges.
@@ -117,7 +116,7 @@ public class Cube {
 		switch(faceIndex){
 		case 0:
 			if(FACE_ORDER.indexOf('L') != faceIndex ) break;
-			back[0][0] = down[0][0];
+			back[0][0]  = down[0][0];
 			back[1][0] 	= down[1][0];
 			back[2][0] 	= down[2][0];
 			down[0][0] 	= front[0][0];
@@ -239,22 +238,6 @@ public class Cube {
 	   }
 	}
 	
-	public String toString(){
-		String ret = "";
-		ret += "       - - -"+"\n";
-		ret += stringForFace(5);
-		ret += " - - - - - - - - - \n";
-		for(int a=0;a<3;a++){
-			ret += stringForRow(a);
-		}
-		ret += " - - - - - - - - - \n";
-		ret += stringForFace(3);
-		ret += "       - - -"+"\n";
-		ret += stringForFace(4);
-		ret += "       - - -"+"\n";
-		return ret;
-	}	
-	
 	public Boolean isSolved(){
 		return this.score() == 0;
 	}
@@ -275,23 +258,78 @@ public class Cube {
 		return score;
 	}
 	
+	public String toRBGString(){
+		String ret = "";
+		for(char c : this.toString().toCharArray()){
+			switch(c-48){
+				case 0:
+					ret+='R';
+					break;
+				case 1:
+					ret+='B';
+					break;
+				case 2:
+					ret+='O';
+					break;
+				case 3:
+					ret+='Y';
+					break;
+				case 4:
+					ret+='G';
+					break;
+				case 5:
+					ret+='W';
+					break;
+				default:
+					ret+=c;
+					break;
+			}
+		}
+		return ret;
+	}
+	
+	public String toString(){
+		String ret = "";
+		ret += "       - - -"+"\n";
+		ret += stringForFace(5);
+		ret += " - - - - - - - - - \n";
+		for(int a=0;a<3;a++){
+			ret += stringForRow(a);
+		}
+		ret += " - - - - - - - - - \n";
+		ret += stringForFace(3);
+		ret += "       - - -"+"\n";
+		ret += stringForFace(4);
+		ret += "       - - -"+"\n";
+		return ret;
+	}
+
 	public static String generateMoveSequence(int length){
 		String sequence = "";
 		for(int a = 0; a<length; a++){
 			Random rand = new Random();
+			String face = FACE_ORDER.charAt(rand.nextInt(FACE_ORDER.length()))+"";
+			String[] moves = sequence.split(",");
+			while(moves.length > 0 && moves[moves.length-1].startsWith(face)){
+				face = FACE_ORDER.charAt(rand.nextInt(FACE_ORDER.length()))+"";
+			}
 			int rotations = rand.nextInt(3)+1;
-			int faceIndex = rand.nextInt(FACE_ORDER.length());
-			sequence += FACE_ORDER.charAt(faceIndex) + "" + rotations +",";
+			sequence += face + rotations +",";
 		}
 		return sequence.substring(0, sequence.length()-1);
 	}
 	
 	public static void main(String[] args){
 		Cube cube = new Cube();
-		String sequence = Cube.generateMoveSequence(20);
+		String sequence;
+//		sequence = Cube.generateMoveSequence(20);
+//		sequence = "L2,U2,L3,R2,U3,R2,L2,U1,D3,R2,D3,B3,U2,F2,R3,B1,L3,F2,D1,B3";
+		sequence = "U,F";
 		System.out.println("preforming: "+sequence);
-		cube.doMoves(sequence);
-		System.out.println(cube);
+		for(String s : sequence.split(",")){
+			cube.doMove(s);
+			System.out.println(cube.toRBGString());
+		}
 		System.out.println("score: "+cube.score());
 	}
 }
