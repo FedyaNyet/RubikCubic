@@ -32,5 +32,37 @@ public class RubikTests {
 		cube.doMoves("F3,D2,R3");
 		assertTrue("Simple non sequencial problem solved:", cube.isSolved());
 	}
-
+	
+	@Test
+	public void testCrossSolution(){
+		Cube cube = new Cube();
+		cube.doMoves("F,L,B,R,F,L,B,R,F,L,D2,L,U2,L3");
+		assertTrue("Cube Has Cross:", cube.faceHasCross(Cube.FACE_ORDER.indexOf('D')));
+	}
+	
+	@Test
+	public void testFaceSolution(){
+		Cube cube = new Cube();
+		cube.doMoves("D2,U,B3,D3,L2,L2,B,U3,L3,D2,L");
+		assertTrue("Cube Has Cross:", cube.faceIsComplete(Cube.FACE_ORDER.indexOf('U')));
+		cube = new Cube();
+		cube.doMoves("L2,B2,R3,B3,F3,D2,F3,R2,F2");
+		assertTrue("Cube Has Cross:", cube.faceIsComplete(Cube.FACE_ORDER.indexOf('L')));
+	}
+	
+	@Test
+	public void testTwoRowSolution(){
+		Cube cube = new Cube();
+		cube.doMoves("D");
+		assertTrue("Cube Has Two Rows:", cube.faceHasSecondRow(Cube.FACE_ORDER.indexOf('U')));
+	}
+	
+	@Test
+	public void rotatedInPlaceCorner(){
+		Cube cube = new Cube();
+		cube.doMoves("R2,U3,B2,F2,D2,B2,U3,F2,D2,F,R2,F,D2,F2,D2");
+		System.out.println(cube);
+		int placedShips = cube.hasRotatedInplaceCorner(0);
+		assertTrue("Cube Has Two Rows:", placedShips==1);
+	}
 }
