@@ -145,15 +145,15 @@ public class Cube implements Serializable {
 			break;
 		case 1:
 			if(FACE_ORDER.indexOf('F') != faceIndex ) break;
-			up[2][0] 	= left[0][2];
+			up[2][0] 	= left[2][2];
 			up[2][1] 	= left[1][2];
-			up[2][2] 	= left[2][2];
+			up[2][2] 	= left[0][2];
 			left[0][2]  = down[0][0];
 			left[1][2] 	= down[0][1];
 			left[2][2] 	= down[0][2];
-			down[0][0] 	= right[0][0];
+			down[0][0] 	= right[2][0];
 			down[0][1] 	= right[1][0];
-			down[0][2] 	= right[2][0];
+			down[0][2] 	= right[0][0];
 			right[0][0] = up_cln[2][0];
 			right[1][0] = up_cln[2][1];
 			right[2][0] = up_cln[2][2];	
