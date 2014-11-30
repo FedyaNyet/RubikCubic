@@ -57,14 +57,6 @@ public class Cube implements Serializable {
 		}
 	}
 	
-	private int[][] copyFace(int[][] face){
-		int[][] copiedFace = face.clone();
-		for (int i = 0; i < face.length; i++) {
-			copiedFace[i] = face[i].clone();
-		}
-		return copiedFace;
-	}
-	
 	private String stringForFace(int faceIndex){
 		String ret = "";
 		char color = FACE_ORDER.charAt(faceIndex);
@@ -124,8 +116,8 @@ public class Cube implements Serializable {
 		int[][] down	 = faces.get(FACE_ORDER.indexOf('D')); 
 		int[][] left 	 = faces.get(FACE_ORDER.indexOf('L'));
 		int[][] right 	 = faces.get(FACE_ORDER.indexOf('R'));
-		int[][] up_cln   = copyFace(up);
-		int[][] back_cln = copyFace(back);
+		int[][] up_cln   = DeepCopy.copy(up);
+		int[][] back_cln = DeepCopy.copy(back);
 		switch(faceIndex){
 		case 0:
 			if(FACE_ORDER.indexOf('L') != faceIndex ) break;
@@ -255,22 +247,6 @@ public class Cube implements Serializable {
 		return this.score() == 0;
 	}
 	
-	public int score(){
-		int score = 0;
-		for(char color: FACE_ORDER.toCharArray()){
-			int face_index = FACE_ORDER.indexOf(color);
-			int[][] face = faces.get(face_index);
-			for(int row=0; row<3; row++){
-				for(int column=0; column<3; column++){
-					if( face[column][row] != face_index){
-						score--;
-					}
-				}
-			}
-		}
-		return score;
-	}
-	
 	public String toRBGString(){
 		String ret = "";
 		for(char c : this.toString().toCharArray()){
@@ -316,34 +292,36 @@ public class Cube implements Serializable {
 		ret += "       - - -"+"\n";
 		return ret;
 	}
+	
 
-	private int tileScore(){
+	private int score(){
+		int SCORE_MAX = 6881212; 
 		/**
-		 * 20 positions for edge & corner peices (face centers don't move).
-		 * 24 correct edge orientations.
-		 * 24 correct corner rotations.
+		 * a | b | c | d | e = score
+		 * where:
+		 *    a =  Solved faces
+		 *    b =  Oriented corners;   
+		 *    c =  Positioned corners; 
+		 *    d =  Oriented edges;     
+		 *    e =  Positioned edges;   
 		 */
-		int max_score = 68; 
+		int score = 0;
+		for(char color: FACE_ORDER.toCharArray()){
+			int face_index = FACE_ORDER.indexOf(color);
+			int[][] face = faces.get(face_index);
+			
+			for(int row=0; row<3; row++){
+				for(int column=0; column<3; column++){
+					if( face[column][row] != face_index){
+						score--;
+					}
+				}
+			}
+		}
 		for (int[][] face : faces){
 			
 		}
-		return 0;
-	}
-	
-	/**
-	 * This function retuns one or two face indexes depending on the face's tile that it receives.
-	 * @param peice: This is a list of 3 numbers, where x0 is the faceIndex and x1,x2 are the coordinates of the tile
-	 * for which to fetch the adjacent face index.
-	 * @return an aray of face indexes that are adjacent to the given edge or corner peice provide as the param to this function.
-	 */
-	public int[] getAdjacentFaceIndexes(int[] peice){
-		int[] adjacentFaceIndexes = new int[1];
-		if( (peice[1] + peice[2]) % 2 == 0){
-			//even sums are corners
-			adjacentFaceIndexes = new int[2];
-		}
-		
-		return adjacentFaceIndexes;
+		return score;
 	}
 	
 	public static String generateMoveSequence(int length){
@@ -365,15 +343,11 @@ public class Cube implements Serializable {
 		Cube cube = new Cube();
 		String sequence;
 //		sequence = Cube.generateMoveSequence(20);
-//		sequence = Cube.generateMoveSequence(5);
-		sequence = "D,B,R,L,U,F";
+		sequence = "B3,D2,F,L2,R3,U2,F";
 		System.out.println("preforming: "+sequence);
 		cube.doMoves(sequence);
 		System.out.println(cube.toRBGString());
 //		System.out.println("score: "+cube.score());
-//		System.out.println("Scramble: "+sequence);
-//		cube.doMoves(sequence);
-//		sequence = "U,F";
 //		CubeSolver solver = new CubeSolver(cube,"BFS");
 //		long startTime = System.nanoTime();
 //		solver.solve();
