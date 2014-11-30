@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 /*		
 			|#| = face index.      
@@ -22,10 +23,22 @@ import java.util.ArrayList;
  
 */
 import java.util.Random;
+
+import FastCopy.DeepCopy;
 	  
-public class Cube {
+public class Cube implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8256907258001266677L;
 	
 	static final String FACE_ORDER = "LFRDBU";
+	static final String[] POSSIBLE_MOVES = {
+		"U" ,"D" ,"F" ,"B" ,"L" ,"R" ,
+		"U2","D2","F2","B2","L2","R2",
+		"U3","D3","F3","B3","L3","R3"
+	};
 	ArrayList<int[][]> faces = new ArrayList<int[][]>(FACE_ORDER.length());
 	
 	Cube(){
@@ -91,7 +104,7 @@ public class Cube {
 	 */
 	public void rotateFace(int faceIndex){
 		int[][] face = faces.get(faceIndex);
-		int[][] origFace = face.clone();
+		int[][] origFace = DeepCopy.copy(faces.get(faceIndex));
 //			  | [0][0] | [0][1] | [0][2] |	   | [2][0] | [1][0] | [0][0] |
 //			  | [1][0] | [1][1] | [1][2] | --> | [2][1] | [1][1] | [0][1] |
 //			  | [2][0] | [2][1] | [2][2] | 	   | [2][2] | [1][2] | [0][2] |
@@ -131,15 +144,15 @@ public class Cube {
 			break;
 		case 1:
 			if(FACE_ORDER.indexOf('F') != faceIndex ) break;
-			up[2][0] 	= left[0][2];
+			up[2][0] 	= left[2][2];
 			up[2][1] 	= left[1][2];
-			up[2][2] 	= left[2][2];
+			up[2][2] 	= left[0][2];
 			left[0][2]  = down[0][0];
 			left[1][2] 	= down[0][1];
 			left[2][2] 	= down[0][2];
-			down[0][0] 	= right[0][0];
+			down[0][0] 	= right[2][0];
 			down[0][1] 	= right[1][0];
-			down[0][2] 	= right[2][0];
+			down[0][2] 	= right[0][0];
 			right[0][0] = up_cln[2][0];
 			right[1][0] = up_cln[2][1];
 			right[2][0] = up_cln[2][2];	
@@ -304,17 +317,46 @@ public class Cube {
 		return ret;
 	}
 
+	private int tileScore(){
+		/**
+		 * 20 positions for edge & corner peices (face centers don't move).
+		 * 24 correct edge orientations.
+		 * 24 correct corner rotations.
+		 */
+		int max_score = 68; 
+		for (int[][] face : faces){
+			
+		}
+		return 0;
+	}
+	
+	/**
+	 * This function retuns one or two face indexes depending on the face's tile that it receives.
+	 * @param peice: This is a list of 3 numbers, where x0 is the faceIndex and x1,x2 are the coordinates of the tile
+	 * for which to fetch the adjacent face index.
+	 * @return an aray of face indexes that are adjacent to the given edge or corner peice provide as the param to this function.
+	 */
+	public int[] getAdjacentFaceIndexes(int[] peice){
+		int[] adjacentFaceIndexes = new int[1];
+		if( (peice[1] + peice[2]) % 2 == 0){
+			//even sums are corners
+			adjacentFaceIndexes = new int[2];
+		}
+		
+		return adjacentFaceIndexes;
+	}
+	
 	public static String generateMoveSequence(int length){
 		String sequence = "";
+		String previousMove = "X"; 
 		for(int a = 0; a<length; a++){
 			Random rand = new Random();
-			String face = FACE_ORDER.charAt(rand.nextInt(FACE_ORDER.length()))+"";
-			String[] moves = sequence.split(",");
-			while(moves.length > 0 && moves[moves.length-1].startsWith(face)){
-				face = FACE_ORDER.charAt(rand.nextInt(FACE_ORDER.length()))+"";
+			String nextMove = POSSIBLE_MOVES[rand.nextInt(POSSIBLE_MOVES.length-1)];
+			while(previousMove.charAt(0) == nextMove.charAt(0)){
+				nextMove = POSSIBLE_MOVES[rand.nextInt(POSSIBLE_MOVES.length-1)];
 			}
-			int rotations = rand.nextInt(3)+1;
-			sequence += face + rotations +",";
+			sequence +=  nextMove + ",";
+			previousMove = nextMove;
 		}
 		return sequence.substring(0, sequence.length()-1);
 	}
@@ -323,13 +365,22 @@ public class Cube {
 		Cube cube = new Cube();
 		String sequence;
 //		sequence = Cube.generateMoveSequence(20);
-//		sequence = "L2,U2,L3,R2,U3,R2,L2,U1,D3,R2,D3,B3,U2,F2,R3,B1,L3,F2,D1,B3";
-		sequence = "U,F";
+//		sequence = Cube.generateMoveSequence(5);
+		sequence = "D,B,R,L,U,F";
 		System.out.println("preforming: "+sequence);
-		for(String s : sequence.split(",")){
-			cube.doMove(s);
-			System.out.println(cube.toRBGString());
-		}
-		System.out.println("score: "+cube.score());
+		cube.doMoves(sequence);
+		System.out.println(cube.toRBGString());
+//		System.out.println("score: "+cube.score());
+//		System.out.println("Scramble: "+sequence);
+//		cube.doMoves(sequence);
+//		sequence = "U,F";
+//		CubeSolver solver = new CubeSolver(cube,"BFS");
+//		long startTime = System.nanoTime();
+//		solver.solve();
+//		long endTime = System.nanoTime();
+//		long duration = (endTime - startTime);
+//		String solution = solver.activeNode.breadcrumbs;
+//		cube.doMoves(solution);
+//		System.out.println("Solution: "+solution + " time:"+duration/1000000000.00+"s");
 	}
 }
