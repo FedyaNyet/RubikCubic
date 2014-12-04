@@ -26,7 +26,7 @@ import java.util.Random;
 
 import FastCopy.DeepCopy;
 	  
-public class Cube implements Serializable {
+public class Cube implements Serializable, Comparable<Cube>{
 	
 	/**
 	 * 
@@ -57,22 +57,13 @@ public class Cube implements Serializable {
 		}
 	}
 	
-	private int[][] copyFace(int[][] face){
-		int[][] copiedFace = face.clone();
-		for (int i = 0; i < face.length; i++) {
-			copiedFace[i] = face[i].clone();
-		}
-		return copiedFace;
-	}
-	
 	private String stringForFace(int faceIndex){
 		String ret = "";
 		char color = FACE_ORDER.charAt(faceIndex);
 		int[][] face = faces.get(faceIndex);
-		Boolean short_line = (color == 'U' || color == 'D' || color == 'B' );
 		String new_line = null;
 		Object[] args =  null;
-		if(short_line){
+		if(color == 'U' || color == 'D' || color == 'B' ){
 			new_line = "      |%d|%d|%d|         ";
 			args = new Object[] {0, 0, 0};
 			for(int row=0; row<3; row++){
@@ -110,12 +101,12 @@ public class Cube implements Serializable {
 //			  | [1][0] | [1][1] | [1][2] | --> | [2][1] | [1][1] | [0][1] |
 //			  | [2][0] | [2][1] | [2][2] | 	   | [2][2] | [1][2] | [0][2] |
 		face[0][0] = origFace[2][0];
-		face[1][0] = origFace[2][1];
-		face[2][0] = origFace[2][2];
 		face[0][1] = origFace[1][0];
-		face[2][1] = origFace[1][2];
 		face[0][2] = origFace[0][0];
+		face[1][0] = origFace[2][1];
 		face[1][2] = origFace[0][1];
+		face[2][0] = origFace[2][2];
+		face[2][1] = origFace[1][2];
 		face[2][2] = origFace[0][2];
 		
 		//Rotate the adjacent face's edges.
@@ -125,12 +116,12 @@ public class Cube implements Serializable {
 		int[][] down	 = faces.get(FACE_ORDER.indexOf('D')); 
 		int[][] left 	 = faces.get(FACE_ORDER.indexOf('L'));
 		int[][] right 	 = faces.get(FACE_ORDER.indexOf('R'));
-		int[][] up_cln   = copyFace(up);
-		int[][] back_cln = copyFace(back);
+		int[][] up_cln   = DeepCopy.copy(up);
+		int[][] back_cln = DeepCopy.copy(back);
 		switch(faceIndex){
 		case 0:
 			if(FACE_ORDER.indexOf('L') != faceIndex ) break;
-			back[0][0] = down[0][0];
+			back[0][0]  = down[0][0];
 			back[1][0] 	= down[1][0];
 			back[2][0] 	= down[2][0];
 			down[0][0] 	= front[0][0];
@@ -145,15 +136,15 @@ public class Cube implements Serializable {
 			break;
 		case 1:
 			if(FACE_ORDER.indexOf('F') != faceIndex ) break;
-			up[2][0] 	= left[0][2];
+			up[2][0] 	= left[2][2];
 			up[2][1] 	= left[1][2];
-			up[2][2] 	= left[2][2];
+			up[2][2] 	= left[0][2];
 			left[0][2]  = down[0][0];
 			left[1][2] 	= down[0][1];
 			left[2][2] 	= down[0][2];
-			down[0][0] 	= right[0][0];
+			down[0][0] 	= right[2][0];
 			down[0][1] 	= right[1][0];
-			down[0][2] 	= right[2][0];
+			down[0][2] 	= right[0][0];
 			right[0][0] = up_cln[2][0];
 			right[1][0] = up_cln[2][1];
 			right[2][0] = up_cln[2][2];	
@@ -252,6 +243,40 @@ public class Cube implements Serializable {
 	   }
 	}
 	
+	public Boolean isSolved(){
+		return this.score() == 0;
+	}
+	
+	public String toRBGString(){
+		String ret = "";
+		for(char c : this.toString().toCharArray()){
+			switch(c-48){
+				case 0:
+					ret+='R';
+					break;
+				case 1:
+					ret+='B';
+					break;
+				case 2:
+					ret+='O';
+					break;
+				case 3:
+					ret+='Y';
+					break;
+				case 4:
+					ret+='G';
+					break;
+				case 5:
+					ret+='W';
+					break;
+				default:
+					ret+=c;
+					break;
+			}
+		}
+		return ret;
+	}
+	
 	public String toString(){
 		String ret = "";
 		ret += "       - - -"+"\n";
@@ -266,57 +291,342 @@ public class Cube implements Serializable {
 		ret += stringForFace(4);
 		ret += "       - - -"+"\n";
 		return ret;
-	}	
-	
-	public Boolean isSolved(){
-		return this.score() == 0;
 	}
 	
-	public int score(){
-		int score = 0;
-		for(char color: FACE_ORDER.toCharArray()){
-			int face_index = FACE_ORDER.indexOf(color);
-			int[][] face = faces.get(face_index);
-			for(int row=0; row<3; row++){
-				for(int column=0; column<3; column++){
-					if( face[column][row] != face_index){
-						score--;
-					}
-				}
-			}
-		}
-		return score;
-	}
-	
-	private int tileScore(){
-		/**
-		 * 20 positions for edge & corner peices (face centers don't move).
-		 * 24 correct edge orientations.
-		 * 24 correct corner rotations.
-		 */
-		int max_score = 68; 
-		for (int[][] face : faces){
-			
-		}
+	public int 	compareTo(Cube c){
+		if( this.score() < c.score() ) return -1;
+		if( this.score() > c.score() ) return 1;
 		return 0;
 	}
 	
-	/**
-	 * This function retuns one or two face indexes depending on the face's tile that it receives.
-	 * @param peice: This is a list of 3 numbers, where x0 is the faceIndex and x1,x2 are the coordinates of the tile
-	 * for which to fetch the adjacent face index.
-	 * @return an aray of face indexes that are adjacent to the given edge or corner peice provide as the param to this function.
-	 */
-	public int[] getAdjacentFaceIndexes(int[] peice){
-		int[] adjacentFaceIndexes = new int[1];
-		if( (peice[1] + peice[2]) % 2 == 0){
-			//even sums are corners
-			adjacentFaceIndexes = new int[2];
-		}
+
+	int SCORE_MAX = 881212; 
+	public int score(){
+		/**
+		 * a | b | c | d = score
+		 * where:
+		 *    a =  Oriented corners;   
+		 *    b =  Positioned corners; 
+		 *    c =  Oriented edges;     
+		 *    d =  Positioned edges;   
+		 */
+		int cornersPositioned 	= this.getNumberOfCornersInCorrectPosition();
+		int cornersOriented 	= this.getNumberOfCornersInCorrectOrientation();
+		int edgesPositioned 	= this.getNumberOfEdgesInCorrectPosition();
+		int edgesOriented 		= this.getNumberOfEdgesInCorrectOrientation();
+		String score = String.format("%d%d%02d%02d", cornersOriented, cornersPositioned, edgesOriented, edgesPositioned);
+		return Integer.parseInt(score);
+	}
+
+	private int getNumberOfEdgesInCorrectPosition() {
+		int count = 0;
+		if(	(faces.get(0)[0][1] == 0 && faces.get(5)[1][0] == 5) || (faces.get(0)[0][1] == 5 && faces.get(5)[1][0] == 0) ) count++;
+		if(	(faces.get(0)[1][2] == 0 && faces.get(1)[1][0] == 1) || (faces.get(0)[1][2] == 1 && faces.get(1)[1][0] == 0) ) count++;
+		if(	(faces.get(0)[2][1] == 0 && faces.get(3)[1][0] == 3) || (faces.get(0)[2][1] == 3 && faces.get(3)[1][0] == 0) ) count++;
+		if(	(faces.get(0)[1][0] == 0 && faces.get(4)[1][0] == 4) || (faces.get(0)[1][0] == 4 && faces.get(4)[1][0] == 0) ) count++;
 		
-		return adjacentFaceIndexes;
+		if(	(faces.get(2)[0][1] == 2 && faces.get(5)[1][2] == 5) || (faces.get(2)[0][1] == 5 && faces.get(5)[1][2] == 2) ) count++;
+		if(	(faces.get(2)[1][2] == 2 && faces.get(1)[1][2] == 1) || (faces.get(2)[1][2] == 1 && faces.get(1)[1][2] == 2) ) count++;
+		if(	(faces.get(2)[2][1] == 2 && faces.get(3)[1][2] == 3) || (faces.get(2)[2][1] == 3 && faces.get(3)[1][2] == 2) ) count++;
+		if(	(faces.get(2)[1][0] == 2 && faces.get(4)[1][2] == 4) || (faces.get(2)[1][0] == 4 && faces.get(4)[1][2] == 2) ) count++;
+		
+		if(	(faces.get(5)[0][1] == 5 && faces.get(4)[2][1] == 4) || (faces.get(5)[0][1] == 4 && faces.get(4)[2][1] == 5) ) count++;
+		if(	(faces.get(1)[0][1] == 1 && faces.get(5)[2][1] == 5) || (faces.get(1)[0][1] == 5 && faces.get(5)[2][1] == 1) ) count++;
+		if(	(faces.get(3)[0][1] == 3 && faces.get(1)[2][1] == 1) || (faces.get(3)[0][1] == 1 && faces.get(1)[2][1] == 3) ) count++;
+		if(	(faces.get(4)[0][1] == 4 && faces.get(3)[2][1] == 3) || (faces.get(4)[0][1] == 3 && faces.get(3)[2][1] == 4) ) count++;
+		return count;
 	}
 	
+	private int getNumberOfEdgesInCorrectOrientation() {
+		int count = 0;
+		if(faces.get(0)[0][1] == 0 && faces.get(5)[1][0] == 5) count++;
+		if(faces.get(0)[1][2] == 0 && faces.get(1)[1][0] == 1) count++;
+		if(faces.get(0)[2][1] == 0 && faces.get(3)[1][0] == 3) count++;
+		if(faces.get(0)[1][0] == 0 && faces.get(4)[1][0] == 4) count++;
+		
+		if(faces.get(2)[0][1] == 2 && faces.get(5)[1][2] == 5) count++;
+		if(faces.get(2)[1][2] == 2 && faces.get(1)[1][2] == 1) count++;
+		if(faces.get(2)[2][1] == 2 && faces.get(3)[1][2] == 3) count++;
+		if(faces.get(2)[1][0] == 2 && faces.get(4)[1][2] == 4) count++;
+		
+		if(faces.get(5)[0][1] == 5 && faces.get(4)[2][1] == 4) count++;
+		if(faces.get(1)[0][1] == 1 && faces.get(5)[2][1] == 5) count++;
+		if(faces.get(3)[0][1] == 3 && faces.get(1)[2][1] == 1) count++;
+		if(faces.get(4)[0][1] == 4 && faces.get(3)[2][1] == 3) count++;
+		return count;
+	}
+
+	private int getNumberOfCornersInCorrectPosition() {
+		//TODO: Fix This to accept rotations.
+		int count = 0;
+		if(	(faces.get(0)[0][0] == 0 && faces.get(4)[2][0] == 4 && faces.get(5)[0][0] == 5) || 
+			(faces.get(0)[0][0] == 5 && faces.get(4)[2][0] == 0 && faces.get(5)[0][0] == 4) || 
+			(faces.get(0)[0][0] == 4 && faces.get(4)[2][0] == 5 && faces.get(5)[0][0] == 0)) count ++;
+		if( (faces.get(0)[0][2] == 0 && faces.get(5)[2][0] == 5 && faces.get(1)[0][0] == 1) ||
+			(faces.get(0)[0][2] == 5 && faces.get(5)[2][0] == 1 && faces.get(1)[0][0] == 0) ||
+			(faces.get(0)[0][2] == 1 && faces.get(5)[2][0] == 0 && faces.get(1)[0][0] == 5)) count ++;
+		if( (faces.get(0)[2][2] == 0 && faces.get(1)[2][0] == 1 && faces.get(3)[0][0] == 3) ||
+			(faces.get(0)[2][2] == 1 && faces.get(1)[2][0] == 3 && faces.get(3)[0][0] == 0) ||
+			(faces.get(0)[2][2] == 3 && faces.get(1)[2][0] == 0 && faces.get(3)[0][0] == 1)) count ++;
+		if( (faces.get(0)[2][0] == 0 && faces.get(3)[2][0] == 3 && faces.get(4)[0][0] == 4) ||
+			(faces.get(0)[2][0] == 3 && faces.get(3)[2][0] == 4 && faces.get(4)[0][0] == 0) ||
+			(faces.get(0)[2][0] == 4 && faces.get(3)[2][0] == 0 && faces.get(4)[0][0] == 3)) count ++;
+
+		if( (faces.get(2)[0][0] == 2 && faces.get(1)[0][2] == 1 && faces.get(5)[2][2] == 5) || 
+			(faces.get(2)[0][0] == 1 && faces.get(1)[0][2] == 5 && faces.get(5)[2][2] == 2) || 
+			(faces.get(2)[0][0] == 5 && faces.get(1)[0][2] == 2 && faces.get(5)[2][2] == 1)) count ++;
+		if( (faces.get(2)[0][2] == 2 && faces.get(5)[0][2] == 5 && faces.get(4)[2][2] == 4) || 
+			(faces.get(2)[0][2] == 5 && faces.get(5)[0][2] == 4 && faces.get(4)[2][2] == 2) || 
+			(faces.get(2)[0][2] == 4 && faces.get(5)[0][2] == 2 && faces.get(4)[2][2] == 5)) count ++;
+		if( (faces.get(2)[2][2] == 2 && faces.get(4)[0][2] == 4 && faces.get(3)[2][2] == 3) || 
+			(faces.get(2)[2][2] == 4 && faces.get(4)[0][2] == 3 && faces.get(3)[2][2] == 2) || 
+			(faces.get(2)[2][2] == 3 && faces.get(4)[0][2] == 2 && faces.get(3)[2][2] == 4)) count ++;
+		if( (faces.get(2)[2][0] == 2 && faces.get(3)[0][2] == 3 && faces.get(1)[2][2] == 1) || 
+			(faces.get(2)[2][0] == 3 && faces.get(3)[0][2] == 1 && faces.get(1)[2][2] == 2) || 
+			(faces.get(2)[2][0] == 1 && faces.get(3)[0][2] == 2 && faces.get(1)[2][2] == 3)) count ++;
+		return count;
+	}
+
+	private int getNumberOfCornersInCorrectOrientation() {
+		int count = 0;
+		if(faces.get(0)[0][0] == 0 && faces.get(4)[2][0] == 4 && faces.get(5)[0][0] == 5) count ++;
+		if(faces.get(0)[0][2] == 0 && faces.get(5)[2][0] == 5 && faces.get(1)[0][0] == 1) count ++;
+		if(faces.get(0)[2][2] == 0 && faces.get(1)[2][0] == 1 && faces.get(3)[0][0] == 3) count ++;
+		if(faces.get(0)[2][0] == 0 && faces.get(3)[2][0] == 3 && faces.get(4)[0][0] == 4) count ++;
+
+		if(faces.get(2)[0][0] == 2 && faces.get(1)[0][2] == 1 && faces.get(5)[2][2] == 5) count ++;
+		if(faces.get(2)[0][2] == 2 && faces.get(5)[0][2] == 5 && faces.get(4)[2][2] == 4) count ++;
+		if(faces.get(2)[2][2] == 2 && faces.get(4)[0][2] == 4 && faces.get(3)[2][2] == 3) count ++;
+		if(faces.get(2)[2][0] == 2 && faces.get(3)[0][2] == 3 && faces.get(1)[2][2] == 1) count ++;
+		return count;
+	}
+
+	public int hasRotatedInplaceCorner(int faceColor){
+		int rotatedCorners = 0;
+		if(	this.getAdjacentFaceColor(faceColor, 0, 0, 'w') == faceColor ||
+			this.getAdjacentFaceColor(faceColor, 0, 0, 'n') == faceColor){
+				rotatedCorners++;
+		}
+		if( this.getAdjacentFaceColor(faceColor, 0, 2, 'n') == faceColor ||
+			this.getAdjacentFaceColor(faceColor, 0, 2, 'e') == faceColor ){
+				rotatedCorners++;
+		}
+		if( this.getAdjacentFaceColor(faceColor, 2, 2, 'e') == faceColor ||
+			this.getAdjacentFaceColor(faceColor, 2, 2, 's') == faceColor ){
+				rotatedCorners++;
+		}
+		if( this.getAdjacentFaceColor(faceColor, 2, 0, 's') == faceColor ||
+			this.getAdjacentFaceColor(faceColor, 2, 0, 'w') == faceColor ){
+				rotatedCorners++;
+		}
+		return rotatedCorners;
+	}
+	
+	private int getAdjacentFaceColor(int faceColor, int row, int col, char dir){
+		int[][] faceInDir = faces.get(getFaceColorInDirection(faceColor,dir));
+		 	 if(faceColor == 0 && dir == 'n' && row == 0 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 0 && dir == 'n' && row == 0 && col == 1) return faceInDir[1][0];
+		else if(faceColor == 0 && dir == 'n' && row == 0 && col == 2) return faceInDir[2][0];
+		else if(faceColor == 0 && dir == 'e' && row == 0 && col == 2) return faceInDir[0][0];
+		else if(faceColor == 0 && dir == 'e' && row == 1 && col == 2) return faceInDir[1][0];
+		else if(faceColor == 0 && dir == 'e' && row == 2 && col == 2) return faceInDir[2][0];
+		else if(faceColor == 0 && dir == 's' && row == 2 && col == 2) return faceInDir[0][0];
+		else if(faceColor == 0 && dir == 's' && row == 2 && col == 1) return faceInDir[1][0];
+		else if(faceColor == 0 && dir == 's' && row == 2 && col == 0) return faceInDir[2][0];
+		else if(faceColor == 0 && dir == 'w' && row == 2 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 0 && dir == 'w' && row == 1 && col == 0) return faceInDir[1][0];
+		else if(faceColor == 0 && dir == 'w' && row == 0 && col == 0) return faceInDir[2][0];
+		                                                                     
+		else if(faceColor == 1 && dir == 'n' && row == 0 && col == 0) return faceInDir[2][0];
+		else if(faceColor == 1 && dir == 'n' && row == 0 && col == 1) return faceInDir[2][1];
+		else if(faceColor == 1 && dir == 'n' && row == 0 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 1 && dir == 'e' && row == 0 && col == 2) return faceInDir[0][0];
+		else if(faceColor == 1 && dir == 'e' && row == 1 && col == 2) return faceInDir[1][0];
+		else if(faceColor == 1 && dir == 'e' && row == 2 && col == 2) return faceInDir[2][0];
+		else if(faceColor == 1 && dir == 's' && row == 2 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 1 && dir == 's' && row == 2 && col == 1) return faceInDir[0][1];
+		else if(faceColor == 1 && dir == 's' && row == 2 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 1 && dir == 'w' && row == 2 && col == 0) return faceInDir[2][2];
+		else if(faceColor == 1 && dir == 'w' && row == 1 && col == 0) return faceInDir[1][2];
+		else if(faceColor == 1 && dir == 'w' && row == 0 && col == 0) return faceInDir[0][2];
+                                                                             
+		else if(faceColor == 2 && dir == 'n' && row == 0 && col == 0) return faceInDir[2][2];
+		else if(faceColor == 2 && dir == 'n' && row == 0 && col == 1) return faceInDir[1][2];
+		else if(faceColor == 2 && dir == 'n' && row == 0 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 2 && dir == 'e' && row == 0 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 2 && dir == 'e' && row == 1 && col == 2) return faceInDir[1][2];
+		else if(faceColor == 2 && dir == 'e' && row == 2 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 2 && dir == 's' && row == 2 && col == 0) return faceInDir[0][2];
+		else if(faceColor == 2 && dir == 's' && row == 2 && col == 1) return faceInDir[1][2];
+		else if(faceColor == 2 && dir == 's' && row == 2 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 2 && dir == 'w' && row == 0 && col == 0) return faceInDir[0][2];
+		else if(faceColor == 2 && dir == 'w' && row == 1 && col == 0) return faceInDir[1][2];
+		else if(faceColor == 2 && dir == 'w' && row == 2 && col == 0) return faceInDir[2][2];
+                                                                             
+		else if(faceColor == 3 && dir == 'n' && row == 0 && col == 0) return faceInDir[2][0];
+		else if(faceColor == 3 && dir == 'n' && row == 0 && col == 1) return faceInDir[2][1];
+		else if(faceColor == 3 && dir == 'n' && row == 0 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 3 && dir == 'e' && row == 0 && col == 2) return faceInDir[2][0];
+		else if(faceColor == 3 && dir == 'e' && row == 1 && col == 2) return faceInDir[2][1];
+		else if(faceColor == 3 && dir == 'e' && row == 2 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 3 && dir == 's' && row == 2 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 3 && dir == 's' && row == 2 && col == 1) return faceInDir[0][1];
+		else if(faceColor == 3 && dir == 's' && row == 2 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 3 && dir == 'w' && row == 0 && col == 0) return faceInDir[2][2];
+		else if(faceColor == 3 && dir == 'w' && row == 1 && col == 0) return faceInDir[2][1];
+		else if(faceColor == 3 && dir == 'w' && row == 2 && col == 0) return faceInDir[2][0];
+                                                                             
+		else if(faceColor == 4 && dir == 'n' && row == 0 && col == 0) return faceInDir[2][0];
+		else if(faceColor == 4 && dir == 'n' && row == 0 && col == 1) return faceInDir[2][1];
+		else if(faceColor == 4 && dir == 'n' && row == 0 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 4 && dir == 'e' && row == 0 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 4 && dir == 'e' && row == 1 && col == 2) return faceInDir[1][2];
+		else if(faceColor == 4 && dir == 'e' && row == 2 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 4 && dir == 's' && row == 2 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 4 && dir == 's' && row == 2 && col == 1) return faceInDir[0][1];
+		else if(faceColor == 4 && dir == 's' && row == 2 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 4 && dir == 'w' && row == 0 && col == 0) return faceInDir[2][0];
+		else if(faceColor == 4 && dir == 'w' && row == 1 && col == 0) return faceInDir[1][0];
+		else if(faceColor == 4 && dir == 'w' && row == 2 && col == 0) return faceInDir[0][0];
+		                                                                     
+		else if(faceColor == 5 && dir == 'n' && row == 0 && col == 0) return faceInDir[2][0];
+		else if(faceColor == 5 && dir == 'n' && row == 0 && col == 1) return faceInDir[2][1];
+		else if(faceColor == 5 && dir == 'n' && row == 0 && col == 2) return faceInDir[2][2];
+		else if(faceColor == 5 && dir == 'e' && row == 0 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 5 && dir == 'e' && row == 1 && col == 2) return faceInDir[0][1];
+		else if(faceColor == 5 && dir == 'e' && row == 2 && col == 2) return faceInDir[0][0];
+		else if(faceColor == 5 && dir == 's' && row == 2 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 5 && dir == 's' && row == 2 && col == 1) return faceInDir[0][1];
+		else if(faceColor == 5 && dir == 's' && row == 2 && col == 2) return faceInDir[0][2];
+		else if(faceColor == 5 && dir == 'w' && row == 0 && col == 0) return faceInDir[0][0];
+		else if(faceColor == 5 && dir == 'w' && row == 1 && col == 0) return faceInDir[0][1];
+		else if(faceColor == 5 && dir == 'w' && row == 2 && col == 0) return faceInDir[0][2];
+		return -1;
+	}
+	private int getFaceColorInDirection(int faceColor, char dir){
+		if(faceColor == 0 && dir == 'n') return 5;
+		if(faceColor == 0 && dir == 'e') return 1;
+		if(faceColor == 0 && dir == 's') return 3;
+		if(faceColor == 0 && dir == 'w') return 4;
+
+		if(faceColor == 1 && dir == 'n') return 5;
+		if(faceColor == 1 && dir == 'e') return 2;
+		if(faceColor == 1 && dir == 's') return 3;
+		if(faceColor == 1 && dir == 'w') return 0;
+
+		if(faceColor == 2 && dir == 'n') return 5;
+		if(faceColor == 2 && dir == 'e') return 4;
+		if(faceColor == 2 && dir == 's') return 3;
+		if(faceColor == 2 && dir == 'w') return 1;
+
+		if(faceColor == 3 && dir == 'n') return 1;
+		if(faceColor == 3 && dir == 'e') return 2;
+		if(faceColor == 3 && dir == 's') return 4;
+		if(faceColor == 3 && dir == 'w') return 0;
+
+		if(faceColor == 4 && dir == 'n') return 3;
+		if(faceColor == 4 && dir == 'e') return 2;
+		if(faceColor == 4 && dir == 's') return 5;
+		if(faceColor == 4 && dir == 'w') return 0;
+
+		if(faceColor == 5 && dir == 'n') return 4;
+		if(faceColor == 5 && dir == 'e') return 2;
+		if(faceColor == 5 && dir == 's') return 1;
+		if(faceColor == 5 && dir == 'w') return 0;
+	
+		return -1;
+	}
+	public Boolean faceHasCross(int faceColor){
+		int[][] face = faces.get(faceColor);
+		if(	face[0][1] == faceColor && this.getFaceColorInDirection(faceColor, 'n') == this.getAdjacentFaceColor(faceColor, 0, 1, 'n') &&
+			face[1][0] == faceColor && this.getFaceColorInDirection(faceColor, 'e') == this.getAdjacentFaceColor(faceColor, 1, 2, 'e') &&
+			face[2][1] == faceColor && this.getFaceColorInDirection(faceColor, 's') == this.getAdjacentFaceColor(faceColor, 2, 1, 's') &&
+			face[1][2] == faceColor && this.getFaceColorInDirection(faceColor, 'w') == this.getAdjacentFaceColor(faceColor, 1, 0, 'w') ){
+				return true;
+		}
+		return false;
+	}
+	public Boolean faceIsComplete(int faceColor){
+		return getNumerOfCorrectCorners(faceColor) == 4;
+	}
+
+	public int getNumerOfCorrectCorners(int faceColor) {
+		int[][] face = faces.get(faceColor);
+		int count = 0;
+		if(	face[0][0] == faceColor && this.getFaceColorInDirection(faceColor, 'w') == this.getAdjacentFaceColor(faceColor, 0, 0, 'w') &&
+			face[0][0] == faceColor && this.getFaceColorInDirection(faceColor, 'n') == this.getAdjacentFaceColor(faceColor, 0, 0, 'n') ){
+			count++;
+		}
+		if( face[0][2] == faceColor && this.getFaceColorInDirection(faceColor, 'n') == this.getAdjacentFaceColor(faceColor, 0, 2, 'n') &&
+			face[0][2] == faceColor && this.getFaceColorInDirection(faceColor, 'e') == this.getAdjacentFaceColor(faceColor, 0, 2, 'e') ){
+			count++;
+		}
+		if( face[2][2] == faceColor && this.getFaceColorInDirection(faceColor, 'e') == this.getAdjacentFaceColor(faceColor, 2, 2, 'e') &&
+			face[2][2] == faceColor && this.getFaceColorInDirection(faceColor, 's') == this.getAdjacentFaceColor(faceColor, 2, 2, 's') ){
+			count++;
+		}
+		if( face[2][0] == faceColor && this.getFaceColorInDirection(faceColor, 's') == this.getAdjacentFaceColor(faceColor, 2, 0, 's') &&
+			face[2][0] == faceColor && this.getFaceColorInDirection(faceColor, 'w') == this.getAdjacentFaceColor(faceColor, 2, 0, 'w') ){
+			count++;
+		}
+		return count;
+	}
+
+	private char getDirectionOfFace(int fromFaceColor, int toFaceColor){
+		for(char dir : "nesw".toCharArray()){
+			if (this.getFaceColorInDirection(fromFaceColor, dir) == toFaceColor)
+				return dir;
+		}
+		return '-';
+	}
+	private String[] getSecondRowTilesInDirection(char dir){
+		if( dir == 'n' || dir == 's') return new String[]{"10","12"}; 
+		if( dir == 'e' || dir == 'w') return new String[]{"01","21"}; 
+		return new String[0];
+	}
+	
+	public int getNumberOfSecondRowEdgeFilled(int faceColor){
+
+		//for each adjacent_face of faceColor: 
+		//char dirToFaceColor <- get adjacent_face's direction to faceColor
+		//for adjacent_face's tiles in direciton dirToFaceColor:
+			//if tile_color != adjacent_face_color
+		int count = 0;
+		for(char d : "nesw".toCharArray()){
+			int adjacentFaceColor = this.getFaceColorInDirection(faceColor, d);
+			int[][] adjacentFace = this.faces.get(adjacentFaceColor);
+			char dirToFaceColor = this.getDirectionOfFace(adjacentFaceColor, faceColor);
+			for(String tiles : this.getSecondRowTilesInDirection(dirToFaceColor)){
+				int row = tiles.charAt(0)-'0';
+				int col = tiles.charAt(1)-'0';
+				if(adjacentFace[row][col] == adjacentFaceColor){
+					count++;
+				}
+			}
+		}
+		return count/2;
+	}
+	
+	public Boolean faceHasSecondRow(int faceColor){
+		return getNumberOfSecondRowEdgeFilled(faceColor) == 4;
+	}
+	
+	public static char oppositeFaceColor(char faceColor){
+		int color = Cube.FACE_ORDER.indexOf(faceColor);
+		int oppositeColor = oppositeFaceColor(color);
+		return Cube.FACE_ORDER.charAt(oppositeColor);
+	}
+
+	public static int oppositeFaceColor(int faceColor){
+		if(faceColor == 0) return 2;
+		if(faceColor == 1) return 4;
+		if(faceColor == 2) return 0;
+		if(faceColor == 3) return 5;
+		if(faceColor == 4) return 1;
+		if(faceColor == 5) return 3;
+		return -1;
+	}
+
 	public static String generateMoveSequence(int length){
 		String sequence = "";
 		String previousMove = "X"; 
@@ -334,16 +644,54 @@ public class Cube implements Serializable {
 	
 	public static void main(String[] args){
 		Cube cube = new Cube();
-		String sequence = Cube.generateMoveSequence(5);
-		System.out.println("Scramble: "+sequence);
+		String sequence;
+//		sequence = Cube.generateMoveSequence(20);
+
+		sequence = "B3,D2,F,L2,R3,U2,F"; //solution "F3,U2,R,L2,F3,D2,B3"
+		
+		String start_sequence = "F3,U,R,L2,F,D2,B3";
+		
+		//create hashMap for sequence:score
+		//for i in range(0,21):
+			//add start_sequence to the hashMap with score:0, mutation:0;
+		int generation = 0;
+		//while true:
+			//for each sequence [key] in hashMap:
+				//get random index for mutation in range 7
+				//get random move for mutation
+				//mutate the sequence.
+				//create a new cube
+				//run the mutated sequence on the new cube.
+				//add new sequence to hashMap with cube's score and sequence's mutation index.
+				//remove old sequence from hashMap.
+			//create list-of-favorable-sequences.
+			//create list-of-non-favorable sequences.
+			//for each sequence in list-of-favorable-sequences:
+				//pick 2 random items in list-of-non-favorable
+				//apply sequence mutation to 2 picks
+				//remove 2 picks from list-of-non-favorable sequences
+			//print generation and best sequence / score.
+		
+		
+		
+		
+//		sequence = "L,R3,F,L,R3,D,L,R3,B2,L3,R,D,L3,R,F,L3,R,U2"; // opposite edge flip
+//		sequence = "U3,R,U,F3,U,F,U3,R2"; // adjacent corner swap
+//		sequence = "U3,R2,U,R,U3,R,U,R2"; // triple corner rotation
+		System.out.println("preforming: "+sequence);
 		cube.doMoves(sequence);
-		CubeSolver solver = new CubeSolver(cube,"BFS");
-		long startTime = System.nanoTime();
-		solver.solve();
-		long endTime = System.nanoTime();
-		long duration = (endTime - startTime);
-		String solution = solver.activeNode.breadcrumbs;
-		cube.doMoves(solution);
-		System.out.println("Solution: "+solution + " time:"+duration/1000000000.00+"s");
+		
+		System.out.println(cube.toRBGString());
+		System.out.println("score: "+cube.score());
+//		CubeSolver solver = new CubeSolver(cube,"BFS");
+//		long startTime = System.nanoTime();
+//		solver.solve();
+//		long endTime = System.nanoTime();
+//		long duration = (endTime - startTime);
+//		String solution = solver.activeNode.breadcrumbs;
+//		cube.doMoves(solution);
+//		System.out.println("Solution: "+solution + " time:"+duration/1000000000.00+"s");
 	}
+		// TODO Auto-generated method stub
+
 }

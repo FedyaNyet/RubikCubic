@@ -4,10 +4,17 @@ public class Engine {
 	
 	public static void main(String[] args){
 		Cube cube = new Cube();
-		String sequence = Cube.generateMoveSequence(5);
-		System.out.println("Scramble: "+sequence);
-		cube.doMoves(sequence);
-		CubeSolver solver = new CubeSolver(cube, CubeSolver.ALGORITHM_HUMAN);
+		String scrambleSequence = Cube.generateMoveSequence(6);
+		cube.doMoves(scrambleSequence);
+//		
+//		while(cube.score()>0){
+//			cube = new Cube();
+//			scrambleSequence = Cube.generateMoveSequence(10);
+//			cube.doMoves(scrambleSequence);
+//		}
+		System.out.println("Scramble: "+scrambleSequence);
+		CubeSolver solver = new CubeSolver(cube, CubeSolver.ALGORITHM_DFS);
+		
 		long startTime = System.nanoTime();
 		solver.solve();
 		long endTime = System.nanoTime();

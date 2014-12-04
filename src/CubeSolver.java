@@ -1,16 +1,23 @@
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Random;
+
+import org.apache.commons.lang.StringUtils;
 
 import FastCopy.DeepCopy;
 
 public class CubeSolver {
 
-	static final int MAX_DEPTH = 10;
+	static final int MAX_DEPTH = 6;
 	static final int ALGORITHM_DFS = 0;
 	static final int ALGORITHM_BFS = 1;
 	static final int ALGORITHM_HUMAN = 2;
+	static final int ALGORITHM_GENETIC = 3;
 	
 	int algorithm;
 	int search_depth = -1;
@@ -132,17 +139,155 @@ public class CubeSolver {
 	}
 	
 	public void solve(){
-		while(!activeNode.cube.isSolved()){
-			if(this.algorithm == ALGORITHM_BFS){
-				stepSolveBFS();
-			}else if(this.algorithm ==  ALGORITHM_DFS){
-				stepSolveDFS();
-			}else if(this.algorithm == ALGORITHM_HUMAN){
-				stepHuman();
+		if(this.algorithm == ALGORITHM_GENETIC){
+			this.solveGeneticly(this.activeNode.cube);
+		}else{
+			while(!activeNode.cube.isSolved()){
+				if(this.algorithm == ALGORITHM_BFS){
+					stepSolveBFS();
+				}else if(this.algorithm ==  ALGORITHM_DFS){
+					stepSolveDFS();
+				}else if(this.algorithm == ALGORITHM_HUMAN){
+					stepHuman();
+				}
 			}
 		}
+		
 	}
+	
+	public void solveGeneticly(Cube scrambledCube){
+		
+//		String startSequence = "F3,U,R,L2,F,D2,B3";
+		String startSequence = Cube.generateMoveSequence(scrambledCube.moveCount);
+		System.out.println("cubeScore:"+scrambledCube.score());
+		System.out.println("startSequence:"+startSequence);
 
+		//a reusable random
+		Random rand = new Random();
+		
+		//create a data store.
+		ArrayList<GeneticNode> data = new ArrayList<GeneticNode>();
+		
+		for(int i=0; i<100; i++){
+			//add start_sequence to the hashMap with score:0, mutation:0;
+			data.add(new GeneticNode(startSequence));
+		}
+		int highScore = 0;
+		System.out.println(String.format("%-11s| %-9s | %-8s | %-30s | %-9s | %-8s | %s","Generation", "HighScore", "BestNode", "BestSequence", "ZeroScores", "AvgScore", "HighScorers"));
+		for(int generation=0; generation>=0; generation++){
+
+			//create list-of-favorable-sequences.
+			ArrayList<GeneticNode> listOfFavorableSequences = new ArrayList<GeneticNode>();
+
+			//reset zero score nodes.
+//			for(int i=0; i<data.size(); i++){
+//				GeneticNode node = data.get(i);
+//				if(node.score < 6){
+//					GeneticNode newNode = new GeneticNode(startSequence);
+//					data.set(i, newNode);
+//				}
+//			}
+			
+			//for each sequence [key] in hashMap:
+			int zeroScoreNodes = 0;
+			int newHighScore = 0;
+			int scoreTotal = 0;
+			for (GeneticNode node : data){
+				//mutate the sequence.
+				node.mutateSequence();
+				//run the mutated sequence on a new cube.
+				Cube cube = (Cube) DeepCopy.copy(scrambledCube);
+				cube.doMoves(node.sequence);
+
+				//set the mutation's score.
+				node.setScore(cube.score());
+				
+				scoreTotal+=node.score;
+				
+				if(node.score < 6){
+					zeroScoreNodes++;
+				}
+				if(node.score == Cube.SCORE_MAX){
+					System.out.println("Solution: "+node.sequence);
+					System.exit(1);
+				}
+				if (node.score > newHighScore){
+					newHighScore = node.score;
+				}
+				if(node.mutationHelped){
+					listOfFavorableSequences.add(node);
+				}
+			}
+			Collections.sort(data);
+			//apply good mutations to poor scoring nodes.
+			for(int a = 0; a<listOfFavorableSequences.size(); a++){
+				GeneticNode goodNode = listOfFavorableSequences.get(a);
+				GeneticNode badNode = data.get(a);
+				badNode.mutateSequence(goodNode.mutationIndex, goodNode.mutationMove);
+			}
+			
+			if(newHighScore > highScore){
+				GeneticNode bestNode = data.get(data.size()-1);
+				GeneticNode worstNode = data.get(0);
+				highScore = bestNode.score;
+				System.out.println(String.format("%-11d| %-9d | %-8s | %-30s | %-10d | %-8s | %s", generation, bestNode.score, bestNode.id, bestNode.sequence, zeroScoreNodes, scoreTotal/data.size(), data.subList(0, 20)));
+			}
+			
+			//print generation and best sequence / score.
+		}
+	}
+	
+	public class GeneticNode implements Comparable<GeneticNode>{
+		public int id;
+		public Boolean mutationHelped;
+		public int score;
+		public int mutationIndex;
+		public String mutationMove;
+		public String sequence;
+		
+		public GeneticNode(String startSequence) {
+			this.id = (new Random()).nextInt(1000000);
+			this.sequence = startSequence;
+		}
+
+		public void setScore(int score){
+			mutationHelped = false;
+			if(this.score < score) mutationHelped = true;
+			this.score = score;
+		}
+		
+		/*
+		 * Creates a random mutation in this node's sequence **/
+		public void mutateSequence() {
+			//generate random sequence mutation
+			String[] moves = this.sequence.split(",");
+			Random rand = new Random();
+			this.mutationIndex = rand.nextInt(moves.length-1);
+			this.mutationMove = Cube.POSSIBLE_MOVES[rand.nextInt(Cube.POSSIBLE_MOVES.length-1)];
+			mutateSequence(this.mutationIndex, this.mutationMove);
+		}
+
+		/*
+		 * Applies a specific mutation in this node's sequence **/
+		public void mutateSequence(int mutationIndex, String mutationMove){
+			String[] moves = this.sequence.split(",");
+			moves[mutationIndex] = mutationMove;
+			String newSequence = StringUtils.join(moves,",");
+//			System.out.println("mutated:"+this.sequence + " to:"+newSequence);
+			this.sequence = newSequence;
+		}
+
+		@Override
+		public int compareTo(GeneticNode o) {
+			if(this.score < o.score) return -1;
+			if(this.score > o.score) return 1;
+			return 0;
+		}
+		
+		public String toString(){
+			return this.id+"";
+		}
+	}
 
 	class CubeNode{
 		
