@@ -88,15 +88,18 @@ public class RubikTests {
 		cube.doMoves(sequence);
 		assertTrue("Soluion matches: ",cube.toRBGString().equals(solution));
 	}
-//	
-//	@Test
-//	public void runTest(){
-//		String scramble = "B3,D2,F,L2,R3,U2,F";
-//		String solve = "F3,D2,L3,B3,R,R,F";
-//		Cube cube = new Cube();
-//		cube.doMoves(scramble);
-//		cube.doMoves(solve);
-//		System.out.println(cube);
-//	}
+	
+	@Test
+	public void GeneticParodyIsSolvable(){
+		String scramble = "U3,D2,U3,F,L2";
+		String solve = "L2,F,D2,U2,B2"; // Resonably Good Genetic Solution
+		Cube cube = new Cube();
+		cube.doMoves(scramble); 
+		cube.doMoves(solve);
+		//Apply a rotated variations of middleUp-top-top-middleDown-top-top algorithm 2x.
+		cube.doMoves("U3,D,F2,U,D3,L2"); 
+		cube.doMoves("U3,D,L2,U,D3,B2");
+		assertTrue("Parody from ALGORITHM_GENETIC is solvable", cube.isSolved());
+	}
 	
 }
