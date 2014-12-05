@@ -651,5 +651,4 @@ public class Cube implements Serializable, Comparable<Cube>{
 		}
 		return sequence.substring(0, sequence.length()-1);
 	}
-	
 }
