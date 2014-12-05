@@ -651,32 +651,5 @@ public class Cube implements Serializable, Comparable<Cube>{
 		}
 		return sequence.substring(0, sequence.length()-1);
 	}
-//	
-//	public static void main(String[] args){
-////		String sequence;
-////		sequence = Cube.generateMoveSequence(20);
-//		String scrambleSequence = "B3,D2,F,L2,R3,U2,F"; //solution "F3,U2,R,L2,F3,D2,B3"
-////		
-//		
-//		
-//		
-////		sequence = "L,R3,F,L,R3,D,L,R3,B2,L3,R,D,L3,R,F,L3,R,U2"; // opposite edge flip
-////		sequence = "U3,R,U,F3,U,F,U3,R2"; // adjacent corner swap
-////		sequence = "U3,R2,U,R,U3,R,U,R2"; // triple corner rotation
-////		System.out.println("preforming: "+sequence);
-////		cube.doMoves(sequence);
-////		
-////		System.out.println(cube.toRBGString());
-////		System.out.println("score: "+cube.score());
-////		CubeSolver solver = new CubeSolver(cube,"BFS");
-////		long startTime = System.nanoTime();
-////		solver.solve();
-////		long endTime = System.nanoTime();
-////		long duration = (endTime - startTime);
-////		String solution = solver.activeNode.breadcrumbs;
-////		cube.doMoves(solution);
-////		System.out.println("Solution: "+solution + " time:"+duration/1000000000.00+"s");
-//	}
-	
 	
 }
