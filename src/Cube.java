@@ -1,5 +1,10 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 /*		
 			|#| = face index.      
 	L,F,R,D,B,U = face identifier              		  	 
@@ -23,6 +28,9 @@ import java.util.ArrayList;
  
 */
 import java.util.Random;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
 
 import FastCopy.DeepCopy;
 	  
@@ -214,6 +222,7 @@ public class Cube implements Serializable, Comparable<Cube>{
 		}
 	}
 	
+	public int moveCount = 0;
 	public void doMove(String move){
 		move = move.trim();
 		int faceIndex = FACE_ORDER.indexOf(move.charAt(0));
@@ -228,6 +237,7 @@ public class Cube implements Serializable, Comparable<Cube>{
 		for (int a = 0; a<clicks; a++){
 			this.rotateFace(faceIndex);
 		}
+		moveCount++;
 	}
 	
 	/**
@@ -244,7 +254,7 @@ public class Cube implements Serializable, Comparable<Cube>{
 	}
 	
 	public Boolean isSolved(){
-		return this.score() == 0;
+		return this.score() == Cube.SCORE_MAX;
 	}
 	
 	public String toRBGString(){
@@ -300,7 +310,7 @@ public class Cube implements Serializable, Comparable<Cube>{
 	}
 	
 
-	int SCORE_MAX = 881212; 
+	static final int SCORE_MAX = 881212; 
 	public int score(){
 		/**
 		 * a | b | c | d = score
@@ -641,57 +651,32 @@ public class Cube implements Serializable, Comparable<Cube>{
 		}
 		return sequence.substring(0, sequence.length()-1);
 	}
+//	
+//	public static void main(String[] args){
+////		String sequence;
+////		sequence = Cube.generateMoveSequence(20);
+//		String scrambleSequence = "B3,D2,F,L2,R3,U2,F"; //solution "F3,U2,R,L2,F3,D2,B3"
+////		
+//		
+//		
+//		
+////		sequence = "L,R3,F,L,R3,D,L,R3,B2,L3,R,D,L3,R,F,L3,R,U2"; // opposite edge flip
+////		sequence = "U3,R,U,F3,U,F,U3,R2"; // adjacent corner swap
+////		sequence = "U3,R2,U,R,U3,R,U,R2"; // triple corner rotation
+////		System.out.println("preforming: "+sequence);
+////		cube.doMoves(sequence);
+////		
+////		System.out.println(cube.toRBGString());
+////		System.out.println("score: "+cube.score());
+////		CubeSolver solver = new CubeSolver(cube,"BFS");
+////		long startTime = System.nanoTime();
+////		solver.solve();
+////		long endTime = System.nanoTime();
+////		long duration = (endTime - startTime);
+////		String solution = solver.activeNode.breadcrumbs;
+////		cube.doMoves(solution);
+////		System.out.println("Solution: "+solution + " time:"+duration/1000000000.00+"s");
+//	}
 	
-	public static void main(String[] args){
-		Cube cube = new Cube();
-		String sequence;
-//		sequence = Cube.generateMoveSequence(20);
-
-		sequence = "B3,D2,F,L2,R3,U2,F"; //solution "F3,U2,R,L2,F3,D2,B3"
-		
-		String start_sequence = "F3,U,R,L2,F,D2,B3";
-		
-		//create hashMap for sequence:score
-		//for i in range(0,21):
-			//add start_sequence to the hashMap with score:0, mutation:0;
-		int generation = 0;
-		//while true:
-			//for each sequence [key] in hashMap:
-				//get random index for mutation in range 7
-				//get random move for mutation
-				//mutate the sequence.
-				//create a new cube
-				//run the mutated sequence on the new cube.
-				//add new sequence to hashMap with cube's score and sequence's mutation index.
-				//remove old sequence from hashMap.
-			//create list-of-favorable-sequences.
-			//create list-of-non-favorable sequences.
-			//for each sequence in list-of-favorable-sequences:
-				//pick 2 random items in list-of-non-favorable
-				//apply sequence mutation to 2 picks
-				//remove 2 picks from list-of-non-favorable sequences
-			//print generation and best sequence / score.
-		
-		
-		
-		
-//		sequence = "L,R3,F,L,R3,D,L,R3,B2,L3,R,D,L3,R,F,L3,R,U2"; // opposite edge flip
-//		sequence = "U3,R,U,F3,U,F,U3,R2"; // adjacent corner swap
-//		sequence = "U3,R2,U,R,U3,R,U,R2"; // triple corner rotation
-		System.out.println("preforming: "+sequence);
-		cube.doMoves(sequence);
-		
-		System.out.println(cube.toRBGString());
-		System.out.println("score: "+cube.score());
-//		CubeSolver solver = new CubeSolver(cube,"BFS");
-//		long startTime = System.nanoTime();
-//		solver.solve();
-//		long endTime = System.nanoTime();
-//		long duration = (endTime - startTime);
-//		String solution = solver.activeNode.breadcrumbs;
-//		cube.doMoves(solution);
-//		System.out.println("Solution: "+solution + " time:"+duration/1000000000.00+"s");
-	}
-		// TODO Auto-generated method stub
-
+	
 }

@@ -1,2 +1,7 @@
-/Cube$Adjacency.class
+/Cube.class
+/CubeSolver$CubeNode.class
+/CubeSolver$GeneticNode.class
+/CubeSolver.class
 /Engine.class
+/FastCopy
+/RubikTests.class
