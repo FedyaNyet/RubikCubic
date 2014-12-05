@@ -13,7 +13,7 @@ import FastCopy.DeepCopy;
 
 public class CubeSolver {
 
-	static final int MAX_DEPTH = 6;
+	int MAX_DEPTH = 6;
 	static final int ALGORITHM_DFS = 0;
 	static final int ALGORITHM_BFS = 1;
 	static final int ALGORITHM_HUMAN = 2;
@@ -26,6 +26,7 @@ public class CubeSolver {
 	
 	CubeSolver(Cube cube){
 		initWithCube(cube);
+		MAX_DEPTH = cube.moveCount;
 	}
 	
 	CubeSolver(Cube cube, int algorithm){
@@ -54,7 +55,7 @@ public class CubeSolver {
 	private void stepSolveDFS(){
 		if(activeNode.cube.isSolved())
 			return;
-		if(activeNode.depth >= CubeSolver.MAX_DEPTH || (search_depth > 0 && activeNode.depth >= search_depth )){
+		if(activeNode.depth >= MAX_DEPTH || (search_depth > 0 && activeNode.depth >= search_depth )){
 			activeNode.parent.children.remove(activeNode.move);
 			activeNode = activeNode.parent;
 			return;
